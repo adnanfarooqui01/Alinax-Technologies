@@ -11,26 +11,58 @@ if (navbarEl) {
 // Mobile nav toggle
 const navToggle = document.getElementById("nav-toggle");
 const navLinks = document.getElementById("nav-links");
+const navInner = document.querySelector(".nav-inner");
+const navDropdowns = document.querySelectorAll(".nav-dropdown");
+
+function closeMobileNav() {
+  if (navLinks) navLinks.classList.remove("open");
+  if (navInner) navInner.classList.remove("menu-open");
+  navDropdowns.forEach((d) => d.classList.remove("open"));
+  if (navToggle) navToggle.setAttribute("aria-expanded", "false");
+}
 
 if (navToggle && navLinks) {
   navToggle.addEventListener("click", () => {
     const open = navLinks.classList.toggle("open");
+    if (navInner) navInner.classList.toggle("menu-open", open);
     navToggle.setAttribute("aria-expanded", open ? "true" : "false");
+    if (!open) navDropdowns.forEach((d) => d.classList.remove("open"));
   });
 
-  // On mobile, tapping a dropdown parent expands it instead of navigating
-  document.querySelectorAll(".nav-dropdown > a").forEach((link) => {
-    link.addEventListener("click", (e) => {
-      if (window.innerWidth <= 980) {
-        e.preventDefault();
-        link.parentElement.classList.toggle("open");
-      }
+  // On mobile, tapping a dropdown parent expands/collapses it instead of navigating
+  navDropdowns.forEach((drop) => {
+    const parentLink = drop.querySelector(":scope > a");
+    if (!parentLink) return;
+    parentLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      const willOpen = !drop.classList.contains("open");
+      navDropdowns.forEach((d) => {
+        d.classList.remove("open");
+        d.querySelector(":scope > a")?.setAttribute("aria-expanded", "false");
+      });
+      if (willOpen) drop.classList.add("open");
+      parentLink.setAttribute("aria-expanded", willOpen ? "true" : "false");
     });
   });
 
-  // Close the mobile menu after picking a link
-  navLinks.querySelectorAll("a[href^='#']").forEach((link) => {
-    link.addEventListener("click", () => navLinks.classList.remove("open"));
+  // Close the mobile menu after picking any real link (not the dropdown parent toggle)
+  navLinks.querySelectorAll("a").forEach((link) => {
+    const isDropdownParent = link.parentElement.classList.contains("nav-dropdown");
+    if (!isDropdownParent) {
+      link.addEventListener("click", closeMobileNav);
+    }
+  });
+
+  // Click outside the nav pill closes the mobile menu
+  document.addEventListener("click", (e) => {
+    if (window.innerWidth <= 980 && navLinks.classList.contains("open")) {
+      if (!e.target.closest(".nav-inner")) closeMobileNav();
+    }
+  });
+
+  // Reset state if the viewport is resized past the mobile breakpoint
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > 980) closeMobileNav();
   });
 }
 
@@ -51,6 +83,7 @@ const io = new IntersectionObserver(
   { threshold: 0.15, rootMargin: "0px 0px -40px 0px" }
 );
 document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+
 // Contact form: build a mailto: with the entered details (no backend on this site)
 const contactForm = document.getElementById("contact-form");
 if (contactForm) {
