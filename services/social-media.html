@@ -7,7 +7,9 @@
 <meta name="description" content="Alinax Technologies plans, creates and publishes consistent social media content — strategy, content creation, Reels, and performance reporting.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="preload" as="image" href="../images/Hero-social-media.webp" fetchpriority="high">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"></noscript>
 <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
@@ -17,7 +19,7 @@
   <header class="navbar">
     <nav class="nav-inner" aria-label="Main">
       <a class="logo" href="../index.html">
-        <img src="../images/A-logo.png" alt="Alinax Technologies logo">
+        <img src="../images/A-logo.webp" width="230" height="230" loading="lazy" alt="Alinax Technologies logo">
         <span class="logo-word">Alinax</span>
       </a>
       <ul class="nav-links" id="nav-links">
@@ -48,7 +50,7 @@
 
   <!-- HERO -->
   <section class="hero hero-service" id="top">
-    <img class="hero-bg-img" src="../images/Hero-social-media.png" alt="Social media management services banner">
+    <img class="hero-bg-img" src="../images/Hero-social-media.webp" width="1536" height="1024" fetchpriority="high" alt="Social media management services banner">
     <div class="container">
       <span class="eyebrow">Social Media Management</span>
       <h1>
@@ -352,6 +354,6 @@
   </footer>
 
 </div>
-<script src="../js/script.js"></script>
+<script src="../js/script.js" defer></script>
 </body>
 </html>
