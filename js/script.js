@@ -1,123 +1,123 @@
-// Floating navbar scroll state
-const navbarEl = document.querySelector(".navbar");
-if (navbarEl) {
-  const setScrolled = () => {
-    navbarEl.classList.toggle("is-scrolled", window.scrollY > 12);
-  };
+// ALINAX TECHNOLOGIES — interactions for the Deep Frost redesign
+(() => {
+  "use strict";
+
+  if (!document.querySelector('link[data-alinax-fonts]')) {
+    const preconnect = document.createElement("link");
+    preconnect.rel = "preconnect";
+    preconnect.href = "https://fonts.gstatic.com";
+    preconnect.crossOrigin = "anonymous";
+    document.head.appendChild(preconnect);
+
+    const fonts = document.createElement("link");
+    fonts.rel = "stylesheet";
+    fonts.href = "https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Sora:wght@400;500;600;700;800&display=swap";
+    fonts.dataset.alinaxFonts = "true";
+    document.head.appendChild(fonts);
+  }
+
+  const navbar = document.querySelector(".navbar");
+  const navToggle = document.getElementById("nav-toggle");
+  const navLinks = document.getElementById("nav-links");
+  const navDropdowns = [...document.querySelectorAll(".nav-dropdown")];
+
+  const setScrolled = () => navbar?.classList.toggle("is-scrolled", window.scrollY > 12);
   setScrolled();
   window.addEventListener("scroll", setScrolled, { passive: true });
-}
 
-// Mobile nav toggle
-const navToggle = document.getElementById("nav-toggle");
-const navLinks = document.getElementById("nav-links");
-const navInner = document.querySelector(".nav-inner");
-const navDropdowns = document.querySelectorAll(".nav-dropdown");
-
-function closeMobileNav() {
-  if (navLinks) navLinks.classList.remove("open");
-  if (navInner) navInner.classList.remove("menu-open");
-  navDropdowns.forEach((d) => d.classList.remove("open"));
-  if (navToggle) navToggle.setAttribute("aria-expanded", "false");
-}
-
-if (navToggle && navLinks) {
-  navToggle.addEventListener("click", () => {
-    const open = navLinks.classList.toggle("open");
-    if (navInner) navInner.classList.toggle("menu-open", open);
-    navToggle.setAttribute("aria-expanded", open ? "true" : "false");
-    if (!open) navDropdowns.forEach((d) => d.classList.remove("open"));
-  });
-
-  // On mobile, tapping a dropdown parent expands/collapses it instead of navigating
-  navDropdowns.forEach((drop) => {
-    const parentLink = drop.querySelector(":scope > a");
-    if (!parentLink) return;
-    parentLink.addEventListener("click", (e) => {
-      e.preventDefault();
-      const willOpen = !drop.classList.contains("open");
-      navDropdowns.forEach((d) => {
-        d.classList.remove("open");
-        d.querySelector(":scope > a")?.setAttribute("aria-expanded", "false");
+  const setMenuState = (open) => {
+    navLinks?.classList.toggle("open", open);
+    navToggle?.classList.toggle("is-open", open);
+    navToggle?.setAttribute("aria-expanded", String(open));
+    document.body.classList.toggle("nav-open", open);
+    if (!open) {
+      navDropdowns.forEach((dropdown) => {
+        dropdown.classList.remove("open");
+        dropdown.querySelector(":scope > a")?.setAttribute("aria-expanded", "false");
       });
-      if (willOpen) drop.classList.add("open");
-      parentLink.setAttribute("aria-expanded", willOpen ? "true" : "false");
+    }
+  };
+
+  navToggle?.addEventListener("click", () => setMenuState(!navLinks?.classList.contains("open")));
+
+  navDropdowns.forEach((dropdown) => {
+    const trigger = dropdown.querySelector(":scope > a");
+    trigger?.setAttribute("aria-expanded", "false");
+    trigger?.addEventListener("click", (event) => {
+      if (window.innerWidth > 980) return;
+      event.preventDefault();
+      const willOpen = !dropdown.classList.contains("open");
+      navDropdowns.forEach((item) => {
+        item.classList.remove("open");
+        item.querySelector(":scope > a")?.setAttribute("aria-expanded", "false");
+      });
+      dropdown.classList.toggle("open", willOpen);
+      trigger.setAttribute("aria-expanded", String(willOpen));
     });
   });
 
-  // Close the mobile menu after picking any real link (not the dropdown parent toggle)
-  navLinks.querySelectorAll("a").forEach((link) => {
-    const isDropdownParent = link.parentElement.classList.contains("nav-dropdown");
-    if (!isDropdownParent) {
-      link.addEventListener("click", closeMobileNav);
+  navLinks?.querySelectorAll("a").forEach((link) => {
+    if (!link.parentElement?.classList.contains("nav-dropdown")) {
+      link.addEventListener("click", () => setMenuState(false));
     }
   });
 
-  // Click outside the nav pill closes the mobile menu
-  document.addEventListener("click", (e) => {
-    if (window.innerWidth <= 980 && navLinks.classList.contains("open")) {
-      if (!e.target.closest(".nav-inner")) closeMobileNav();
+  document.addEventListener("click", (event) => {
+    if (window.innerWidth <= 980 && navLinks?.classList.contains("open") && event.target instanceof Node && !navbar?.contains(event.target)) {
+      setMenuState(false);
     }
   });
-
-  // Reset state if the viewport is resized past the mobile breakpoint
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") setMenuState(false);
+  });
   window.addEventListener("resize", () => {
-    if (window.innerWidth > 980) closeMobileNav();
+    if (window.innerWidth > 980) setMenuState(false);
   });
-}
 
-// Footer year
-const yearEl = document.getElementById("year");
-if (yearEl) yearEl.textContent = String(new Date().getFullYear());
+  const year = document.getElementById("year");
+  if (year) year.textContent = String(new Date().getFullYear());
 
-// Scroll reveal
-const io = new IntersectionObserver(
-  (entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const revealItems = document.querySelectorAll(".reveal");
+  if (reducedMotion || !("IntersectionObserver" in window)) {
+    revealItems.forEach((item) => item.classList.add("in"));
+  } else {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
         entry.target.classList.add("in");
-        io.unobserve(entry.target);
-      }
-    });
-  },
-  { threshold: 0.15, rootMargin: "0px 0px -40px 0px" }
-);
-document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+        observer.unobserve(entry.target);
+      });
+    }, { threshold: 0.12, rootMargin: "0px 0px -35px" });
+    revealItems.forEach((item) => observer.observe(item));
+  }
 
-// Contact form: build a mailto: with the entered details (no backend on this site)
-const contactForm = document.getElementById("contact-form");
-if (contactForm) {
-  const statusEl = document.getElementById("form-status");
+  const contactForm = document.getElementById("contact-form");
+  contactForm?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const value = (id) => document.getElementById(id)?.value?.trim() || "";
+    const name = value("cf-name");
+    const email = value("cf-email");
+    const phone = value("cf-phone");
+    const code = value("cf-cc");
+    const service = value("cf-service");
+    const message = value("cf-message");
+    const status = document.getElementById("form-status");
 
-  contactForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-
-    const name = document.getElementById("cf-name").value.trim();
-    const email = document.getElementById("cf-email").value.trim();
-    const ccCode = document.getElementById("cf-cc").value;
-    const phoneNum = document.getElementById("cf-phone").value.trim();
-    const service = document.getElementById("cf-service").value;
-    const message = document.getElementById("cf-message").value.trim();
-
-    if (!name || !email || !phoneNum || !message) {
-      if (statusEl) {
-        statusEl.textContent = "Please fill in your name, email, phone number and message before sending.";
-        statusEl.className = "form-status show err";
+    if (!name || !email || !phone || !message) {
+      if (status) {
+        status.textContent = "Please fill in your name, email, phone number and message before sending.";
+        status.className = "form-status show err";
       }
       return;
     }
 
-    const fullPhone = `${ccCode} ${phoneNum}`;
-    const subject = encodeURIComponent(`New enquiry from ${name}${service ? " — " + service : ""}`);
-    const body = encodeURIComponent(
-      `Name: ${name}\nEmail: ${email}\nPhone: ${fullPhone}\nService: ${service || "Not specified"}\n\nMessage:\n${message}`
-    );
-
-    window.location.href = `mailto:hello@alinaxtechnologies.com?subject=${subject}&body=${body}`;
-
-    if (statusEl) {
-      statusEl.textContent = "Opening your email app with your details filled in — hit send to reach us.";
-      statusEl.className = "form-status show ok";
+    const subject = encodeURIComponent(`New enquiry from ${name}${service ? ` — ${service}` : ""}`);
+    const body = encodeURIComponent(`Name: ${name}\nEmail: ${email}\nPhone: ${code} ${phone}\nService: ${service || "Not specified"}\n\nMessage:\n${message}`);
+    if (status) {
+      status.textContent = "Opening your email app with your details filled in — hit send to reach us.";
+      status.className = "form-status show ok";
     }
+    window.location.href = `mailto:hello@alinaxtechnologies.com?subject=${subject}&body=${body}`;
   });
-}
+})();
